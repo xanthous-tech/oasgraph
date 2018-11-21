@@ -103,7 +103,9 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
             log(`Process operation "${operationId}"...`);
             let field = getFieldForOperation(operation, data, oas);
             if (!operation.isMutation) {
-                let fieldName = operation.responseDefinition.otName;
+                // I need to be sane
+                let fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap);
+                // let fieldName = operation.responseDefinition.otName
                 if (operation.inViewer) {
                     for (let securityRequirement of operation.securityRequirements) {
                         if (typeof authQueryFields[securityRequirement] !== 'object') {
