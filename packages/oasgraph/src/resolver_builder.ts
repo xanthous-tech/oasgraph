@@ -23,7 +23,7 @@ import debug from 'debug'
 // Type definitions & exports:
 type GetResolverParams = {
   operation: Operation,
-  argsFromLink?: {[key: string]: string},
+  argsFromLink?: { [key: string]: string },
   argsFromParent?: string[],
   payloadName?: string,
   data: PreprocessingData,
@@ -33,8 +33,8 @@ type GetResolverParams = {
 type RequestOptions = {
   method: string,
   url: string,
-  headers: {[key: string]: string},
-  qs: {[key: string]: string},
+  headers: { [key: string]: string },
+  qs: { [key: string]: string },
   body?: (Object | Array<any> | string)
 }
 
@@ -44,8 +44,8 @@ type AuthReqAndProtcolName = {
 }
 
 type AuthOptions = {
-  authHeaders: {[key: string]: string},
-  authQs: {[key: string]: string}
+  authHeaders: { [key: string]: string },
+  authQs: { [key: string]: string }
 }
 
 const log = debug('http')
@@ -54,7 +54,7 @@ const log = debug('http')
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-export function getResolver ({
+export function getResolver({
   operation,
   argsFromLink = {},
   argsFromParent = [],
@@ -66,7 +66,7 @@ export function getResolver ({
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
   // return resolve function:
-  return (root: any, args, ctx = {}) => {
+  return (root: any, args, ctx: any = {}) => {
     // fetch possibly existing _oasgraph
     // NOTE: _oasgraph is an object used to pass security information
     let _oasgraph: any = {}
@@ -96,15 +96,15 @@ export function getResolver ({
         } else {
           log(`Warning: could not extract parameter ${paramName} form link`)
         }
-      // CASE: parameter in previous query parameter
+        // CASE: parameter in previous query parameter
       } else if (/query\./.test(value)) {
         args[paramNameWithoutLocation] =
           _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
-      // CASE: parameter in previous path parameter
+        // CASE: parameter in previous path parameter
       } else if (/path\./.test(value)) {
         args[paramNameWithoutLocation] =
           _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
-      // CASE: link OASGraph currently does not support
+        // CASE: link OASGraph currently does not support
       } else {
         log(`Warning: could not process link parameter ${paramName} with ` +
           `value ${value}`)
@@ -126,7 +126,7 @@ export function getResolver ({
     operation.parameters.forEach(param => {
       let paramName = Oas3Tools.beautify(param.name)
       if (typeof args[paramName] === 'undefined' &&
-      param.schema && typeof param.schema === 'object') {
+        param.schema && typeof param.schema === 'object') {
         let schema = param.schema
         if (schema && schema.$ref && typeof schema.$ref === 'string') {
           schema = Oas3Tools.resolveRef(schema.$ref, oas)
@@ -146,6 +146,7 @@ export function getResolver ({
       operation.path,
       operation.parameters,
       args)
+
     let url = baseUrl + path
 
     // The Content-type and accept property should not be changed because the
@@ -153,8 +154,11 @@ export function getResolver ({
     // cannot be easily changed
     //
     // NOTE: This may cause the use to encounter unexpected changes
-    headers['content-type'] = typeof(operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json'
-    headers['accept'] = typeof(operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json'
+    headers['content-type'] = typeof (operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json'
+    headers['accept'] = typeof (operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json'
+
+    // Pass through original headers
+    headers = Object.assign({}, headers, ctx.headers);
 
     let options: RequestOptions = {
       method: operation.method,
@@ -263,10 +267,10 @@ export function getResolver ({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-function createOAuthQS (
+function createOAuthQS(
   data: PreprocessingData,
   ctx: Object
-): {[key: string]: string} {
+): { [key: string]: string } {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -290,10 +294,10 @@ function createOAuthQS (
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
  */
-function createOAuthHeader (
+function createOAuthHeader(
   data: PreprocessingData,
   ctx: Object
-): {[key: string]: string} {
+): { [key: string]: string } {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -320,7 +324,7 @@ function createOAuthHeader (
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-function getAuthOptions (
+function getAuthOptions(
   operation: Operation,
   _oasgraph: any,
   data: PreprocessingData
@@ -396,7 +400,7 @@ function getAuthOptions (
  * (possibly multiple) authentication protocols can be used based on the data
  * present in the given context.
  */
-function getAuthReqAndProtcolName (
+function getAuthReqAndProtcolName(
   operation: Operation,
   _oasgraph,
   data: PreprocessingData

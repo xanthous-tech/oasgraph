@@ -101,6 +101,8 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         // NOTE: This may cause the use to encounter unexpected changes
         headers['content-type'] = typeof (operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json';
         headers['accept'] = typeof (operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json';
+        // Pass through original headers
+        headers = Object.assign({}, headers, ctx.headers);
         let options = {
             method: operation.method,
             url: url,
